@@ -364,10 +364,6 @@ def get_args_parser():
 def main(args):
     utils.init_distributed_mode(args)
 
-    ckpt_path = os.path.join(args.output_dir, 'checkpoint.pth')
-    if os.path.exists(ckpt_path):
-        args.resume = ckpt_path
-
     print(args)
 
     if args.distillation_type != 'none' and args.finetune and not args.eval:
@@ -501,10 +497,8 @@ def main(args):
             model_without_ddp.load_state_dict(checkpoint['model'])
             model_without_ddp.head = _tmp
         else:
-            resume_path = str(output_dir / 'checkpoint.pth')
-            if os.path.exists(resume_path):
-                checkpoint = torch.load(args.resume, map_location='cpu')
-                model_without_ddp.load_state_dict(checkpoint['model'])
+            checkpoint = torch.load(args.resume, map_location='cpu')
+            model_without_ddp.load_state_dict(checkpoint['model'])
 
         # model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:

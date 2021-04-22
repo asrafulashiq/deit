@@ -117,9 +117,7 @@ def main():
 
     num_gpus_per_node = args.ngpus
     nodes = args.nodes
-    # timeout_min = args.timeout
 
-    partition = args.partition
     kwargs = {
         "additional_parameters":
         dict(mail_type="FAIL", mail_user="asrafulashiq@gmail.com")
@@ -135,14 +133,13 @@ def main():
         ntasks_per_node=num_gpus_per_node,
         cpus_per_task=10,
         nodes=nodes,
-        # timeout_min=timeout_min,  # max is 60 * 72
         time=args.timeout,
         # Below are cluster dependent parameters
         # slurm_partition=partition,
         slurm_signal_delay_s=120,
         **kwargs)
 
-    executor.update_parameters(name="deit")
+    # executor.update_parameters(name="deit")
 
     args.dist_url = get_init_file().as_uri()
     # args.output_dir = args.job_dir
