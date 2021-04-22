@@ -17,6 +17,7 @@ from timm.loss import LabelSmoothingCrossEntropy, SoftTargetCrossEntropy
 from timm.scheduler import create_scheduler
 from timm.optim import create_optimizer
 from timm.utils import NativeScaler, get_state_dict, ModelEma
+import torch.distributed as dist
 
 from datasets import build_dataset, build_fs_dataset
 from engine import train_one_epoch, evaluate, evaluate_fs
@@ -30,7 +31,7 @@ def get_args_parser():
     parser = argparse.ArgumentParser('DeiT training and evaluation script',
                                      add_help=False)
     parser.add_argument('--batch-size', default=64, type=int)
-    parser.add_argument('--epochs', default=300, type=int)
+    parser.add_argument('--epochs', default=7000, type=int)
 
     # Model parameters
     parser.add_argument('--model',
@@ -142,24 +143,24 @@ def get_args_parser():
 
     parser.add_argument('--decay-epochs',
                         type=float,
-                        default=30,
+                        default=600,
                         metavar='N',
                         help='epoch interval to decay LR')
     parser.add_argument('--warmup-epochs',
                         type=int,
-                        default=5,
+                        default=100,
                         metavar='N',
                         help='epochs to warmup LR, if scheduler supports')
     parser.add_argument(
         '--cooldown-epochs',
         type=int,
-        default=10,
+        default=200,
         metavar='N',
         help='epochs to cooldown LR at min_lr, after cyclic schedule ends')
     parser.add_argument(
         '--patience-epochs',
         type=int,
-        default=10,
+        default=200,
         metavar='N',
         help='patience epochs for Plateau LR scheduler (default: 10')
     parser.add_argument('--decay-rate',
@@ -314,7 +315,7 @@ def get_args_parser():
                         help='semantic granularity')
 
     parser.add_argument('--output_dir',
-                        default='outputs',
+                        default='outputs/tmp',
                         help='path where to save, empty for no saving')
     parser.add_argument('--device',
                         default='cuda',
@@ -394,7 +395,7 @@ def main(args):
     else:
         dataset_val, _ = build_dataset(is_train=False, args=args)
 
-    if True:  # args.distributed:
+    if dist.is_available():  # args.distributed:
         num_tasks = utils.get_world_size()
         global_rank = utils.get_rank()
         if args.repeated_aug:
