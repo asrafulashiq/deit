@@ -395,7 +395,7 @@ def main(args):
     else:
         dataset_val, _ = build_dataset(is_train=False, args=args)
 
-    if dist.is_available():  # args.distributed:
+    if args.distributed:
         num_tasks = utils.get_world_size()
         global_rank = utils.get_rank()
         if args.repeated_aug:
