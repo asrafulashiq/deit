@@ -51,4 +51,4 @@ export MASTER_ADDRESS=$(echo $slurm_nodes | cut -d' ' -f1)
 
 srun python -m torch.distributed.launch --nproc_per_node=8 \
     --use_env main.py --model deit_tiny_patch16_224 --batch-size 256 --output_dir outputs/deit_t_cifar10 \
-    --data-set CIFAR10
+    --data-set CIFAR10 --epochs 7200
