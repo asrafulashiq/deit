@@ -67,11 +67,18 @@ class INatDataset(ImageFolder):
 def build_dataset(is_train, args):
     transform = build_transform(is_train, args)
 
-    if args.data_set == 'CIFAR':
+    if args.data_set == 'CIFAR100':
         dataset = datasets.CIFAR100(args.data_path,
                                     train=is_train,
-                                    transform=transform)
+                                    transform=transform,
+                                    download=True)
         nb_classes = 100
+    elif args.data_set == 'CIFAR10':
+        dataset = datasets.CIFAR10(args.data_path,
+                                   train=is_train,
+                                   transform=transform,
+                                   download=True)
+        nb_classes = 10
     elif args.data_set == 'IMNET':
         root = os.path.join(args.data_path, 'train' if is_train else 'val')
         dataset = datasets.ImageFolder(root, transform=transform)
@@ -142,7 +149,7 @@ class miniImageNet(torch.utils.data.Dataset):
         if mode is None or mode == '':
             mode = 'train'
         self.transform = transform
-        data = np.load(os.path.join(data_root,
+        data = np.load(os.path.join(data_root, 'mini-ImageNet',
                                     f'mini-imagenet-cache-{mode}.pkl'),
                        allow_pickle=True)
         self.image_data = data['image_data']
@@ -178,13 +185,12 @@ class miniImageNet(torch.utils.data.Dataset):
         return instances
 
 
-from torchmeta.datasets import MiniImagenet
-from torchmeta.transforms import Categorical, ClassSplitter, Rotation
-from torchvision.transforms import Compose, Resize, ToTensor
-from torchmeta.utils.data import BatchMetaDataLoader
-
-
 def build_fs_dataset(args):
+    from torchmeta.datasets import MiniImagenet
+    from torchmeta.transforms import Categorical, ClassSplitter, Rotation
+    from torchvision.transforms import Compose, Resize, ToTensor
+    from torchmeta.utils.data import BatchMetaDataLoader
+
     dataset = MiniImagenet(
         args.test_data_path,
         # Number of ways

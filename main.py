@@ -197,7 +197,7 @@ def get_args_parser():
     parser.add_argument('--no-repeated-aug',
                         action='store_false',
                         dest='repeated_aug')
-    parser.set_defaults(repeated_aug=True)
+    parser.set_defaults(repeated_aug=False)
 
     # * Random Erase params
     parser.add_argument('--reprob',
@@ -285,19 +285,25 @@ def get_args_parser():
 
     # Dataset parameters
     parser.add_argument('--data-path',
-                        default=os.environ['HOME'] +
-                        '/datasets/cdfsl/mini-ImageNet',
+                        default=os.environ['HOME'] + '/datasets/tmp',
                         type=str,
                         help='dataset path')
     parser.add_argument('--test-data-path',
                         default=os.environ['HOME'] + '/datasets/mini-IN',
                         type=str,
-                        help='dataset path')
-    parser.add_argument('--data-set',
-                        default='mini-IN',
-                        choices=['CIFAR', 'IMNET', 'INAT', 'INAT19'],
+                        help='dataset path for mini-IN')
+    parser.add_argument(
+        '--data-set',
+        default='mini-IN',
+        choices=['CIFAR100', 'CIFAR10', 'IMNET', 'INAT', 'INAT19'],
+        type=str,
+        help='Image Net dataset path')
+
+    parser.add_argument("--eval-type",
                         type=str,
-                        help='Image Net dataset path')
+                        default="few_shot",
+                        choices=["few_shot", "linear"])
+
     parser.add_argument('--inat-category',
                         default='name',
                         choices=[
@@ -357,6 +363,10 @@ def get_args_parser():
 def main(args):
     utils.init_distributed_mode(args)
 
+    ckpt_path = os.path.join(args.output_dir, 'checkpoint.pth')
+    if os.path.exists(ckpt_path):
+        args.resume = ckpt_path
+
     print(args)
 
     if args.distillation_type != 'none' and args.finetune and not args.eval:
@@ -378,7 +388,11 @@ def main(args):
         args.data_mode = "train"
 
     dataset_train, args.nb_classes = build_dataset(is_train=True, args=args)
-    data_loader_val = build_fs_dataset(args)
+
+    if args.eval_type == "few_shot":
+        data_loader_val = build_fs_dataset(args)
+    else:
+        dataset_val, _ = build_dataset(is_train=False, args=args)
 
     if True:  # args.distributed:
         num_tasks = utils.get_world_size()
@@ -394,7 +408,6 @@ def main(args):
                 num_replicas=num_tasks,
                 rank=global_rank,
                 shuffle=True)
-
     else:
         sampler_train = torch.utils.data.RandomSampler(dataset_train)
 
@@ -406,6 +419,16 @@ def main(args):
         pin_memory=args.pin_mem,
         drop_last=True,
     )
+
+    if args.eval_type != "few_shot":
+        sampler_val = torch.utils.data.SequentialSampler(dataset_val)
+        data_loader_val = torch.utils.data.DataLoader(
+            dataset_val,
+            sampler=sampler_val,
+            batch_size=int(1.5 * args.batch_size),
+            num_workers=args.num_workers,
+            pin_memory=args.pin_mem,
+            drop_last=False)
 
     mixup_fn = None
     mixup_active = args.mixup > 0 or args.cutmix > 0. or args.cutmix_minmax is not None
@@ -477,8 +500,10 @@ def main(args):
             model_without_ddp.load_state_dict(checkpoint['model'])
             model_without_ddp.head = _tmp
         else:
-            checkpoint = torch.load(args.resume, map_location='cpu')
-            model_without_ddp.load_state_dict(checkpoint['model'])
+            resume_path = str(output_dir / 'checkpoint.pth')
+            if os.path.exists(resume_path):
+                checkpoint = torch.load(args.resume, map_location='cpu')
+                model_without_ddp.load_state_dict(checkpoint['model'])
 
         # model_without_ddp.load_state_dict(checkpoint['model'], strict=False)
         if not args.eval and 'optimizer' in checkpoint and 'lr_scheduler' in checkpoint and 'epoch' in checkpoint:
