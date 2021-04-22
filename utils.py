@@ -19,7 +19,6 @@ class SmoothedValue(object):
     """Track a series of values and provide access to smoothed values over a
     window or the global series average.
     """
-
     def __init__(self, window_size=20, fmt=None):
         if fmt is None:
             fmt = "{median:.4f} ({global_avg:.4f})"
@@ -39,7 +38,9 @@ class SmoothedValue(object):
         """
         if not is_dist_avail_and_initialized():
             return
-        t = torch.tensor([self.count, self.total], dtype=torch.float64, device='cuda')
+        t = torch.tensor([self.count, self.total],
+                         dtype=torch.float64,
+                         device='cuda')
         dist.barrier()
         dist.all_reduce(t)
         t = t.tolist()
@@ -69,12 +70,11 @@ class SmoothedValue(object):
         return self.deque[-1]
 
     def __str__(self):
-        return self.fmt.format(
-            median=self.median,
-            avg=self.avg,
-            global_avg=self.global_avg,
-            max=self.max,
-            value=self.value)
+        return self.fmt.format(median=self.median,
+                               avg=self.avg,
+                               global_avg=self.global_avg,
+                               max=self.max,
+                               value=self.value)
 
 
 class MetricLogger(object):
@@ -100,9 +100,7 @@ class MetricLogger(object):
     def __str__(self):
         loss_str = []
         for name, meter in self.meters.items():
-            loss_str.append(
-                "{}: {}".format(name, str(meter))
-            )
+            loss_str.append("{}: {}".format(name, str(meter)))
         return self.delimiter.join(loss_str)
 
     def synchronize_between_processes(self):
@@ -122,12 +120,8 @@ class MetricLogger(object):
         data_time = SmoothedValue(fmt='{avg:.4f}')
         space_fmt = ':' + str(len(str(len(iterable)))) + 'd'
         log_msg = [
-            header,
-            '[{0' + space_fmt + '}/{1}]',
-            'eta: {eta}',
-            '{meters}',
-            'time: {time}',
-            'data: {data}'
+            header, '[{0' + space_fmt + '}/{1}]', 'eta: {eta}', '{meters}',
+            'time: {time}', 'data: {data}'
         ]
         if torch.cuda.is_available():
             log_msg.append('max mem: {memory:.0f}')
@@ -141,16 +135,23 @@ class MetricLogger(object):
                 eta_seconds = iter_time.global_avg * (len(iterable) - i)
                 eta_string = str(datetime.timedelta(seconds=int(eta_seconds)))
                 if torch.cuda.is_available():
-                    print(log_msg.format(
-                        i, len(iterable), eta=eta_string,
-                        meters=str(self),
-                        time=str(iter_time), data=str(data_time),
-                        memory=torch.cuda.max_memory_allocated() / MB))
+                    print(
+                        log_msg.format(
+                            i,
+                            len(iterable),
+                            eta=eta_string,
+                            meters=str(self),
+                            time=str(iter_time),
+                            data=str(data_time),
+                            memory=torch.cuda.max_memory_allocated() / MB))
                 else:
-                    print(log_msg.format(
-                        i, len(iterable), eta=eta_string,
-                        meters=str(self),
-                        time=str(iter_time), data=str(data_time)))
+                    print(
+                        log_msg.format(i,
+                                       len(iterable),
+                                       eta=eta_string,
+                                       meters=str(self),
+                                       time=str(iter_time),
+                                       data=str(data_time)))
             i += 1
             end = time.time()
         total_time = time.time() - start_time
@@ -164,7 +165,8 @@ def _load_checkpoint_for_ema(model_ema, checkpoint):
     Workaround for ModelEma._load_checkpoint to accept an already-loaded object
     """
     mem_file = io.BytesIO()
-    torch.save(checkpoint, mem_file)
+    torch.save({'state_dict_ema': checkpoint},
+               mem_file)  # FIX: should save a dict
     mem_file.seek(0)
     model_ema._load_checkpoint(mem_file)
 
@@ -230,9 +232,11 @@ def init_distributed_mode(args):
 
     torch.cuda.set_device(args.gpu)
     args.dist_backend = 'nccl'
-    print('| distributed init (rank {}): {}'.format(
-        args.rank, args.dist_url), flush=True)
-    torch.distributed.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
-                                         world_size=args.world_size, rank=args.rank)
+    print('| distributed init (rank {}): {}'.format(args.rank, args.dist_url),
+          flush=True)
+    torch.distributed.init_process_group(backend=args.dist_backend,
+                                         init_method=args.dist_url,
+                                         world_size=args.world_size,
+                                         rank=args.rank)
     torch.distributed.barrier()
     setup_for_distributed(args.rank == 0)
