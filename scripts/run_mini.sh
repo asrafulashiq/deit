@@ -11,8 +11,8 @@ fi
 SLURM="--nodes ${nodes} --ngpus ${gpus}"
 
 cmd="python run_with_submitit.py ${SLURM} \
-    --model deit_tiny_patch16_224 --batch-size 256 --output_dir outputs/deit_t_cifar10 \
-    --data-set CIFAR10 --epochs 7200 --eval-type linear"
+    --model deit_tiny_patch16_224 --batch-size 256 --output_dir outputs/deit_t_mini \
+    --data-set mini-IN --epochs 7200 --eval-type few_shot"
 
 echo "$cmd"
 eval "$cmd"
