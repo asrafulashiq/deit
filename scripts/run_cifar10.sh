@@ -2,10 +2,10 @@ PLATFORM=$(uname -p)
 
 if [ $PLATFORM = "x86_64" ]; then
     gpus=8
-    node=4
+    nodes=4
 else
     gpus=6
-    node=5
+    nodes=5
 fi
 
 SLURM="--nodes ${nodes} --ngpus ${gpus}"
