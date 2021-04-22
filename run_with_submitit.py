@@ -117,21 +117,26 @@ def main():
     timeout_min = args.timeout
 
     partition = args.partition
-    kwargs = {}
-    if args.use_volta32:
-        kwargs['slurm_constraint'] = 'volta32gb'
-    if args.comment:
-        kwargs['slurm_comment'] = args.comment
+    kwargs = {
+        "additional_parameters":
+        dict(mail_type="FAIL", mail_user="asrafulashiq@gmail.com")
+    }
+    # if args.use_volta32:
+    #     kwargs['slurm_constraint'] = 'volta32gb'
+    # if args.comment:
+    #     kwargs['slurm_comment'] = args.comment
 
     executor.update_parameters(
         mem_gb=40 * num_gpus_per_node,
-        gpus_per_node=num_gpus_per_node,
-        tasks_per_node=num_gpus_per_node,  # one task per GPU
+        # gpus_per_node=num_gpus_per_node,
+        num_gpus=num_gpus_per_node,
+        # tasks_per_node=num_gpus_per_node,  # one task per GPU
+        ntasks_per_node=num_gpus_per_node,
         cpus_per_task=10,
         nodes=nodes,
         timeout_min=timeout_min,  # max is 60 * 72
         # Below are cluster dependent parameters
-        slurm_partition=partition,
+        # slurm_partition=partition,
         slurm_signal_delay_s=120,
         **kwargs)
 
