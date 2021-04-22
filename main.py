@@ -19,7 +19,7 @@ from timm.optim import create_optimizer
 from timm.utils import NativeScaler, get_state_dict, ModelEma
 
 from datasets import build_dataset, build_fs_dataset
-from engine import train_one_epoch, evaluate
+from engine import train_one_epoch, evaluate, evaluate_fs
 from losses import DistillationLoss
 from samplers import RASampler
 import models
@@ -295,7 +295,7 @@ def get_args_parser():
     parser.add_argument(
         '--data-set',
         default='mini-IN',
-        choices=['CIFAR100', 'CIFAR10', 'IMNET', 'INAT', 'INAT19'],
+        choices=['mini-IN', 'CIFAR100', 'CIFAR10', 'IMNET', 'INAT', 'INAT19'],
         type=str,
         help='Image Net dataset path')
 
@@ -330,7 +330,7 @@ def get_args_parser():
                         action='store_true',
                         help='Perform evaluation only')
 
-    parser.add_argument("--num-episodes", type=int, default=300)
+    parser.add_argument("--num-episodes", type=int, default=400)
 
     parser.add_argument('--dist-eval',
                         action='store_true',
@@ -517,7 +517,10 @@ def main(args):
                 loss_scaler.load_state_dict(checkpoint['scaler'])
 
     if args.eval:
-        test_stats = evaluate(data_loader_val, model, device, args)
+        if args.eval_type == "few_shot":
+            test_stats = evaluate_fs(data_loader_val, model, device, args)
+        else:
+            test_stats = evaluate(data_loader_val, model, device)
         print(
             f"Accuracy of the network on the  test images: {test_stats['acc1']:.1f}%"
         )
@@ -560,7 +563,11 @@ def main(args):
                         'args': args,
                     }, checkpoint_path)
 
-        test_stats = evaluate(data_loader_val, model, device, args)
+        if args.eval_type == "few_shot":
+            test_stats = evaluate_fs(data_loader_val, model, device, args)
+        else:
+            test_stats = evaluate(data_loader_val, model, device)
+
         print(
             f"Accuracy of the network test images: {test_stats['acc1']:.1f}%")
         max_accuracy = max(max_accuracy, test_stats["acc1"])

@@ -1,15 +1,15 @@
 #!/bin/bash
 
 # set a job name
-#SBATCH --job-name=deit_cifar10
+#SBATCH --job-name=deit_miniIN
 #################
 
 # a file for job output, you can check job progress
-#SBATCH --output=/gpfs/u/home/LLLD/LLLDashr/log_cdfsl_fewshot/deit_cifar10/slurm_out_logs/%j.out
+#SBATCH --output=/gpfs/u/home/LLLD/LLLDashr/log_cdfsl_fewshot/deit_miniIN/slurm_out_logs/%j.out
 #################
 
 # a file for errors
-#SBATCH --error=/gpfs/u/home/LLLD/LLLDashr/log_cdfsl_fewshot/deit_cifar10/slurm_err_logs/%j.err
+#SBATCH --error=/gpfs/u/home/LLLD/LLLDashr/log_cdfsl_fewshot/deit_miniIN/slurm_err_logs/%j.err
 #################
 
 # time needed for job
@@ -50,5 +50,5 @@ slurm_nodes=$(scontrol show hostnames $SLURM_JOB_NODELIST)
 export MASTER_ADDRESS=$(echo $slurm_nodes | cut -d' ' -f1)
 
 srun python -m torch.distributed.launch --nproc_per_node=8 \
-    --use_env main.py --model deit_tiny_patch16_224 --batch-size 256 --output_dir outputs/deit_t_cifar10 \
-    --data-set CIFAR10 --epochs 7200 --eval-type linear
+    --use_env main.py --model deit_tiny_patch16_224 --batch-size 256 --output_dir outputs/deit_t_miniIN \
+    --data-set mini-IN --epochs 7200
