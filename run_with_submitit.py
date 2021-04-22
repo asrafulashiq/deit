@@ -124,10 +124,6 @@ def main():
         "additional_parameters":
         dict(mail_type="FAIL", mail_user="asrafulashiq@gmail.com")
     }
-    # if args.use_volta32:
-    #     kwargs['slurm_constraint'] = 'volta32gb'
-    # if args.comment:
-    #     kwargs['slurm_comment'] = args.comment
 
     executor.update_parameters(
         job_name=args.job_name,
