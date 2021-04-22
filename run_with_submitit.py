@@ -25,8 +25,8 @@ def parse_args():
                         type=int,
                         help="Number of nodes to request")
     parser.add_argument("--timeout",
-                        default=2800,
-                        type=int,
+                        default="06:00:00",
+                        type=str,
                         help="Duration of the job")
     parser.add_argument("--job_dir",
                         default="",
@@ -114,7 +114,7 @@ def main():
 
     num_gpus_per_node = args.ngpus
     nodes = args.nodes
-    timeout_min = args.timeout
+    # timeout_min = args.timeout
 
     partition = args.partition
     kwargs = {
@@ -134,7 +134,8 @@ def main():
         ntasks_per_node=num_gpus_per_node,
         cpus_per_task=10,
         nodes=nodes,
-        timeout_min=timeout_min,  # max is 60 * 72
+        # timeout_min=timeout_min,  # max is 60 * 72
+        time=args.timeout,
         # Below are cluster dependent parameters
         # slurm_partition=partition,
         slurm_signal_delay_s=120,
