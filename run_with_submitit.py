@@ -32,7 +32,10 @@ def parse_args():
                         default="",
                         type=str,
                         help="Job dir. Leave empty for automatic.")
-
+    parser.add_argument("--job_name",
+                        default="deit",
+                        type=str,
+                        help="Job name")
     parser.add_argument("--partition",
                         default="learnfair",
                         type=str,
@@ -127,6 +130,7 @@ def main():
     #     kwargs['slurm_comment'] = args.comment
 
     executor.update_parameters(
+        job_name=args.job_name,
         # mem_gb=40 * num_gpus_per_node,
         mem_per_cpu=10000,
         # gpus_per_node=num_gpus_per_node,
@@ -145,7 +149,7 @@ def main():
     executor.update_parameters(name="deit")
 
     args.dist_url = get_init_file().as_uri()
-    args.output_dir = args.job_dir
+    # args.output_dir = args.job_dir
 
     trainer = Trainer(args)
     job = executor.submit(trainer)
