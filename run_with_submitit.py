@@ -143,6 +143,7 @@ def main():
 
     args.dist_url = get_init_file().as_uri()
     # args.output_dir = args.job_dir
+    Path(args.output_dir).mkdir(parents=True, exist_ok=True)
 
     trainer = Trainer(args)
     job = executor.submit(trainer)
