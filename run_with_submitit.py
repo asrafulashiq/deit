@@ -109,7 +109,7 @@ class Trainer(object):
 def main():
     args = parse_args()
     if args.job_dir == "":
-        args.job_dir = get_shared_folder() / f"{args.job_name}_%j"
+        args.job_dir = get_shared_folder() / args.job_name / "%j"
 
     # Note that the folder will depend on the job_id, to easily track experiments
     executor = submitit.AutoExecutor(folder=args.job_dir,
