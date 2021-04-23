@@ -134,7 +134,7 @@ def evaluate_fs(data_loader, model, device, args):
             device, non_blocking=True), meta_batch['test'][1][0].to(device)
 
         encoder = model.forward_features
-        acc1 = LR(encoder, im_s, y_s, im_q, y_q)
+        acc1 = LR(encoder, im_s, y_s, im_q, y_q) * 100
 
         metric_logger.meters['acc1'].update(acc1.item(), n=1)
 
