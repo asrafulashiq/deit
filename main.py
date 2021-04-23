@@ -331,7 +331,7 @@ def get_args_parser():
                         action='store_true',
                         help='Perform evaluation only')
 
-    parser.add_argument("--num-episodes", type=int, default=400)
+    parser.add_argument("--num_episodes", type=int, default=400)
 
     parser.add_argument('--dist-eval',
                         action='store_true',

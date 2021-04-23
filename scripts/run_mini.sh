@@ -16,3 +16,8 @@ cmd="python run_with_submitit.py ${SLURM} \
 
 echo "$cmd"
 eval "$cmd"
+
+python -m torch.distributed.launch --nproc_per_node=4 --use_en main.py \
+    --model deit_tiny_patch16_224 --batch-size 256 --output_dir outputs/deit_miniIN \
+    --warmup-epochs 40 --cooldown-epochs 80 --patience-epochs 80 \
+    --data-set mini-IN --epochs 3000 --eval-type few_shot --num_episodes 100
