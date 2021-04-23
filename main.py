@@ -552,13 +552,20 @@ def main(args):
             for checkpoint_path in checkpoint_paths:
                 utils.save_on_master(
                     {
-                        'model': model_without_ddp.state_dict(),
-                        'optimizer': optimizer.state_dict(),
-                        'lr_scheduler': lr_scheduler.state_dict(),
-                        'epoch': epoch,
-                        'model_ema': get_state_dict(model_ema),
-                        'scaler': loss_scaler.state_dict(),
-                        'args': args,
+                        'model':
+                        model_without_ddp.state_dict(),
+                        'optimizer':
+                        optimizer.state_dict(),
+                        'lr_scheduler':
+                        lr_scheduler.state_dict(),
+                        'epoch':
+                        epoch,
+                        'model_ema':
+                        get_state_dict(model_ema) if args.model_ema else None,
+                        'scaler':
+                        loss_scaler.state_dict(),
+                        'args':
+                        args,
                     }, checkpoint_path)
 
         if epoch % args.check_val_every_n_epoch == 0:
