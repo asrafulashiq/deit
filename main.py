@@ -87,6 +87,8 @@ def get_args_parser():
         nargs='+',
         metavar='BETA',
         help='Optimizer Betas (default: None, use opt default)')
+
+    parser.add_argument("--check_val_every_n_epoch", type=int, default=1)
     parser.add_argument('--clip-grad',
                         type=float,
                         default=None,
@@ -544,6 +546,7 @@ def main(args):
         )
 
         lr_scheduler.step(epoch)
+
         if args.output_dir:
             checkpoint_paths = [output_dir / 'checkpoint.pth']
             for checkpoint_path in checkpoint_paths:
@@ -558,27 +561,29 @@ def main(args):
                         'args': args,
                     }, checkpoint_path)
 
-        if args.eval_type == "few_shot":
-            test_stats = evaluate_fs(data_loader_val, model, device, args)
-        else:
-            test_stats = evaluate(data_loader_val, model, device)
+        if epoch % args.check_val_every_n_epoch == 0:
+            if args.eval_type == "few_shot":
+                test_stats = evaluate_fs(data_loader_val, model, device, args)
+            else:
+                test_stats = evaluate(data_loader_val, model, device)
 
-        print(
-            f"Accuracy of the network test images: {test_stats['acc1']:.1f}%")
-        max_accuracy = max(max_accuracy, test_stats["acc1"])
-        print(f'Max accuracy: {max_accuracy:.2f}%')
+            print(
+                f"Accuracy of the network test images: {test_stats['acc1']:.1f}%"
+            )
+            max_accuracy = max(max_accuracy, test_stats["acc1"])
+            print(f'Max accuracy: {max_accuracy:.2f}%')
 
-        log_stats = {
-            **{f'train_{k}': v
-               for k, v in train_stats.items()},
-            **{f'test_{k}': v
-               for k, v in test_stats.items()}, 'epoch': epoch,
-            'n_parameters': n_parameters
-        }
+            log_stats = {
+                **{f'train_{k}': v
+                   for k, v in train_stats.items()},
+                **{f'test_{k}': v
+                   for k, v in test_stats.items()}, 'epoch': epoch,
+                'n_parameters': n_parameters
+            }
 
-        if args.output_dir and utils.is_main_process():
-            with (output_dir / "log.txt").open("a") as f:
-                f.write(json.dumps(log_stats) + "\n")
+            if args.output_dir and utils.is_main_process():
+                with (output_dir / "log.txt").open("a") as f:
+                    f.write(json.dumps(log_stats) + "\n")
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
